@@ -35,7 +35,7 @@ end
 
 defmodule Assertion.Test do
   def run(tests, module) do
-    time_elapsed = Enum.map(tests, fn {test_func, description} ->
+    {time_elapsed, failures, successes} = Enum.map(tests, fn {test_func, description} ->
       Task.async(fn ->
         {time, result} = :timer.tc(module, test_func, [])
         {time, result, description}
@@ -47,20 +47,26 @@ defmodule Assertion.Test do
     end)
     |> Enum.filter(fn {r, _} -> r == :ok end)
     |> Enum.map(fn {:ok, result} -> result end)
-    |> Enum.reduce(0, fn {time, result, description}, acc ->
+    |> Enum.reduce({0, 0, 0}, fn {time, result, description}, {time_acc, fail_count, success_count} ->
       case result do
         :ok ->
           out = IO.ANSI.format([:green, :bright, "."], true)
           IO.write out
+          {time_acc + time, fail_count, success_count + 1}
         {:fail, reason} ->
           IO.puts "\n=================================================="
           IO.ANSI.format([:red, :bright, "FAILURE: #{description}"], true) |> IO.puts
           IO.puts "=================================================="
           IO.puts reason
+          {time_acc + time, fail_count + 1, success_count}
       end
-      acc + time
     end)
+    IO.puts "=========== Reports ============"
     IO.puts "Time for test suit: #{time_elapsed / 1000}ms"
+    IO.write "Success count: "
+    IO.ANSI.format([:green, :bright, "#{successes}"], true) |> IO.puts
+    IO.write "Failure count: "
+    IO.ANSI.format([:red, :bright, "#{failures}"], true) |> IO.puts
   end
 
   def assert(:==, lhs, rhs) when lhs == rhs do
