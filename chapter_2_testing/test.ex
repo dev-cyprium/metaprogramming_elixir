@@ -125,25 +125,24 @@ defmodule MathTest do
   end
 
   test "integers can be multiplied and divided" do
+     Process.sleep(1000)
      assert 5 * 5 == 25
      assert 10 / 2 == 5
   end
 
   test "integers can be compared" do
+    Process.sleep(250)
     assert 3 < 6
     assert 5 > 3
   end
 
   test "asserting true passes" do
+    Process.sleep(1000)
     assert true
   end
 
   test "refuting false passes" do
+    Process.sleep(2000)
     refute false
-  end
-
-  test "test suit is run async" do
-    Process.sleep(500)
-    assert true
   end
 end
