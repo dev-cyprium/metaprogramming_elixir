@@ -13,7 +13,26 @@ defmodule Mime do
     def type_from_ext(ext) when ext in unquote(extensions), do: unquote(type)
   end
 
-  def exts_from_type(_type), do: []
-  def type_from_ext(_ext), do: nil
-  def valid_type?(type), do: exts_from_type(type) |> Enum.any?
+  defmacro __using__(opts) do
+    functions_ast = for {type, extensions} <- opts do
+      quote do
+        def exts_from_type(unquote(type)), do: unquote(extensions)
+        def type_from_ext(ext) when ext in unquote(extensions), do: unquote(type)
+      end
+    end
+
+    IO.puts Macro.to_string(functions_ast)
+    quote do
+      unquote(functions_ast)
+      @before_compile unquote(__MODULE__)
+    end
+  end
+
+  defmacro __before_compile__(_env) do
+    quote do
+      def exts_from_type(_type), do: []
+      def type_from_ext(_ext), do: nil
+      def valid_type?(type), do: exts_from_type(type) |> Enum.any?
+    end
+  end
 end
